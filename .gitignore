@@ -1,0 +1,8 @@
+datasets/our/annotations/*
+datasets/our/images/*
+datasets/flow-img/annotations/*
+datasets/flow-img/images/*
+datasets/plastic-bottles/annotations/*
+datasets/plastic-bottles/images/*
+datasets/tud-gv/annotations/*
+datasets/tud-gv/images/*
