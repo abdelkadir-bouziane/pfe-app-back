@@ -1,4 +1,4 @@
-from flask import Flask, send_file, jsonify
+from flask import Flask, send_file, jsonify, request
 from flask_cors import CORS
 from PIL import Image
 from werkzeug.routing import BaseConverter
@@ -22,12 +22,36 @@ class BooleanConverter(BaseConverter):
 
 app.url_map.converters['bool'] = BooleanConverter
 
-image_folder = 'datasets'
+datasets_folder = 'datasets'
 
 def get_image_list(dataset):
-    image_list = os.listdir(os.path.join(image_folder, dataset, "images"))
+    image_list = os.listdir(os.path.join(datasets_folder, dataset, "images"))
     image_list.sort()
     return image_list
+
+def get_filtred_image_list(dataset, classIdsList):
+    image_list = os.listdir(os.path.join(datasets_folder, dataset, 'images'))
+    annot_list = os.listdir(os.path.join(datasets_folder, dataset, 'annotations'))
+    image_list.sort()
+    filtered_images = []
+    for image_name in image_list:
+        # get the iamge name without extension
+        image_name_without_extension = os.path.splitext(image_name)[0]
+        # get the annotation with the same name
+        annot_name = image_name_without_extension + '.txt'
+        if annot_name in annot_list:
+            # get annotation path
+            annot_path = os.path.join(datasets_folder, dataset, 'annotations', annot_name)
+            # read annotation file
+            with open(annot_path, 'r') as annot_file:
+                lines = annot_file.readlines()
+                for line in lines:
+                    # get the annotation id
+                    class_id = line.strip().split()[0]
+                    if class_id in classIdsList:
+                        filtered_images.append(image_name)
+                        break
+    return filtered_images
 
 def fix_image_orientation(img):
     try:
@@ -65,7 +89,12 @@ def resize_image(image_url):
 
 @app.route('/images/<dataset>/<int:page>/<int:nbImagesPerPage>')
 def get_images(dataset, page, nbImagesPerPage):
-    image_list = get_image_list(dataset)
+    # Get the 'classIds' query parameter
+    classIds = request.args.get('classIds')
+    if classIds is not None and classIds != "":
+        image_list = get_filtred_image_list(dataset, classIds.split(','))
+    else:
+        image_list = get_image_list(dataset)
     total_images = len(image_list)
     start = nbImagesPerPage*(page-1)
     end = min(nbImagesPerPage*page, total_images)
@@ -76,7 +105,7 @@ def get_images(dataset, page, nbImagesPerPage):
 
 @app.route('/image/<dataset>/<image_name>/<bool:compressed>')
 def get_image(dataset, image_name, compressed):
-    image_path = os.path.join(image_folder, dataset, "images", image_name)
+    image_path = os.path.join(datasets_folder, dataset, "images", image_name)
     if os.path.isfile(image_path):
         if(compressed):
             return send_file(resize_image(image_path), mimetype='image/*')
