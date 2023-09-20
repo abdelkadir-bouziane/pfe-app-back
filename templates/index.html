@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Object Detection</title>
+</head>
+<body>
+    <h1>Object Detection</h1>
+    <form method="POST" action="/predict" enctype="multipart/form-data">
+        <label for="image">Upload Image:</label>
+        <input type="file" name="image" id="image" required><br><br>
+
+        <label for="type_model">Select Model Type:</label>
+        <select name="type_model" id="type_model" required>
+            <option value="model_1">Model 1</option>
+            <option value="model_2">Model 2</option>
+            <!-- Add more options if needed -->
+        </select><br><br>
+
+        <label for="overlap_value">Overlap Value:</label>
+        <input type="text" name="overlap_value" id="overlap_value" required><br><br>
+
+        <label for="confidence_value">Confidence Value:</label>
+        <input type="text" name="confidence_value" id="confidence_value" required><br><br>
+
+        <input type="submit" value="Detect">
+    </form>
+</body>
+</html>
